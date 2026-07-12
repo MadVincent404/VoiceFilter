@@ -1,0 +1,27 @@
+Rank #2 (worst)
+Target speaker  : 1089
+Target file     : data/LibriSpeech/test-clean/1089/134686/1089-134686-0003.flac
+Interferer spk  : 1320
+
+--- Mélange vs Référence ---
+PESQ   : 1.073
+SI-SDR : -0.049 dB
+SI-SNR : -0.049 dB
+SDR    : -0.009 dB
+
+--- Estimé vs Référence ---
+PESQ   : 1.026
+SI-SDR : -16.929 dB
+SI-SNR : -16.930 dB
+SDR    : -15.142 dB
+
+--- Delta ---
+PESQ   : -0.047
+SI-SDR : -16.880 dB
+SI-SNR : -16.881 dB
+SDR    : -15.133 dB
+
+--- WER ---
+WER mixed   : 2.429
+WER filtered: 1.286
+Delta WER   : -1.143

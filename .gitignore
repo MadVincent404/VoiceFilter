@@ -1,0 +1,9 @@
+__pycache__/
+checkpoints_v5/
+test/
+voice_siolation/
+pretrained_models/
+cours/
+*.csv
+*.log
+voice_isolation/

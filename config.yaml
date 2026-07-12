@@ -1,0 +1,37 @@
+# Audio
+sample_rate: 16000
+segment_length: 3.0
+n_fft: 512
+hop_length: 128
+win_length: 512
+
+# Model
+d_vec_size: 192
+lstm_hidden: 400
+lstm_layers: 1
+fc_hidden: 600
+dropout: 0.0
+
+# Training
+epochs: 60
+batch_size: 48
+lr: 0.0001
+grad_clip: 5.0
+num_workers: 8
+log_interval: 100
+num_mixes: 2
+snr_min: -3.0
+snr_max:  3.0
+weight_decay: 0.0001
+
+# Splits
+train_splits:
+  - train-clean-360
+  - train-clean-100
+
+# Paths
+librispeech_root: "data/LibriSpeech"
+d_vec_path: "data/d_vectors.pt"
+checkpoint_dir: "checkpoints_v4"
+log_dir: "checkpoints_v4/logs"
+tensorboard_dir: "checkpoints_v4/runs"
