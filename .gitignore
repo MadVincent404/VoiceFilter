@@ -5,5 +5,5 @@ voice_siolation/
 pretrained_models/
 cours/
 *.csv
-*.log
+train.log
 voice_isolation/

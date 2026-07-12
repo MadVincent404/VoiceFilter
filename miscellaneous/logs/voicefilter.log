@@ -1,0 +1,147 @@
+2026-07-11 15:27:39 [INFO] Using device: cuda
+2026-07-11 15:27:39 [INFO] Train splits : ['train-clean-360', 'train-clean-100']
+2026-07-11 15:27:39 [INFO] SNR range    : (-3.0, 3.0)
+2026-07-11 15:27:45 [INFO] Train items : 265,106  |  Speakers : 1172
+2026-07-11 15:27:45 [INFO] Val   items : 2,703  |  Speakers : 40
+2026-07-11 15:27:46 [INFO] Model params: 5,538,657
+2026-07-11 15:28:24 [INFO] Using device: cuda
+2026-07-11 15:28:24 [INFO] Train splits : ['train-clean-360', 'train-clean-100']
+2026-07-11 15:28:24 [INFO] SNR range    : (-3.0, 3.0)
+2026-07-11 15:28:31 [INFO] Train items : 265,106  |  Speakers : 1172
+2026-07-11 15:28:31 [INFO] Val   items : 2,703  |  Speakers : 40
+2026-07-11 15:28:31 [INFO] Model params: 5,538,657
+2026-07-11 15:29:08 [INFO] Using device: cuda
+2026-07-11 15:29:08 [INFO] Train splits : ['train-clean-360', 'train-clean-100']
+2026-07-11 15:29:08 [INFO] SNR range    : (-3.0, 3.0)
+2026-07-11 15:29:15 [INFO] Train items : 265,106  |  Speakers : 1172
+2026-07-11 15:29:15 [INFO] Val   items : 2,703  |  Speakers : 40
+2026-07-11 15:29:15 [INFO] Model params: 5,538,657
+2026-07-11 15:29:55 [INFO] Using device: cuda
+2026-07-11 15:29:55 [INFO] Train splits : ['train-clean-360', 'train-clean-100']
+2026-07-11 15:29:55 [INFO] SNR range    : (-3.0, 3.0)
+2026-07-11 15:30:01 [INFO] Train items : 265,106  |  Speakers : 1172
+2026-07-11 15:30:01 [INFO] Val   items : 2,703  |  Speakers : 40
+2026-07-11 15:30:02 [INFO] Model params: 5,538,657
+2026-07-11 16:17:35 [INFO] Epoch 1 | Train Loss: -3.8601
+2026-07-11 16:17:44 [INFO] Epoch 1 | Val Loss:   -5.5103
+2026-07-11 16:17:44 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-11 16:17:44 [INFO]   -> New best val loss: -5.5103
+2026-07-11 17:04:58 [INFO] Epoch 2 | Train Loss: -6.5843
+2026-07-11 17:05:07 [INFO] Epoch 2 | Val Loss:   -6.7684
+2026-07-11 17:05:07 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-11 17:05:07 [INFO]   -> New best val loss: -6.7684
+2026-07-11 17:52:20 [INFO] Epoch 3 | Train Loss: -7.7492
+2026-07-11 17:52:29 [INFO] Epoch 3 | Val Loss:   -7.4138
+2026-07-11 17:52:29 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-11 17:52:29 [INFO]   -> New best val loss: -7.4138
+2026-07-11 18:39:43 [INFO] Epoch 4 | Train Loss: -8.4852
+2026-07-11 18:39:52 [INFO] Epoch 4 | Val Loss:   -7.6505
+2026-07-11 18:39:52 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-11 18:39:52 [INFO]   -> New best val loss: -7.6505
+2026-07-11 19:27:05 [INFO] Epoch 5 | Train Loss: -8.9997
+2026-07-11 19:27:14 [INFO] Epoch 5 | Val Loss:   -8.4356
+2026-07-11 19:27:14 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-11 19:27:14 [INFO]   -> New best val loss: -8.4356
+2026-07-11 19:27:14 [INFO] Checkpoint saved → checkpoints_v4/epoch_005.pt
+2026-07-11 20:14:29 [INFO] Epoch 6 | Train Loss: -9.4314
+2026-07-11 20:14:37 [INFO] Epoch 6 | Val Loss:   -8.4466
+2026-07-11 20:14:37 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-11 20:14:37 [INFO]   -> New best val loss: -8.4466
+2026-07-11 21:01:51 [INFO] Epoch 7 | Train Loss: -9.8485
+2026-07-11 21:02:00 [INFO] Epoch 7 | Val Loss:   -8.7343
+2026-07-11 21:02:00 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-11 21:02:00 [INFO]   -> New best val loss: -8.7343
+2026-07-11 21:49:15 [INFO] Epoch 8 | Train Loss: -10.1914
+2026-07-11 21:49:23 [INFO] Epoch 8 | Val Loss:   -9.0410
+2026-07-11 21:49:23 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-11 21:49:23 [INFO]   -> New best val loss: -9.0410
+2026-07-11 22:36:37 [INFO] Epoch 9 | Train Loss: -10.5239
+2026-07-11 22:36:46 [INFO] Epoch 9 | Val Loss:   -9.1938
+2026-07-11 22:36:46 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-11 22:36:46 [INFO]   -> New best val loss: -9.1938
+2026-07-11 23:24:00 [INFO] Epoch 10 | Train Loss: -10.7825
+2026-07-11 23:24:09 [INFO] Epoch 10 | Val Loss:   -9.1813
+2026-07-11 23:24:09 [INFO] Checkpoint saved → checkpoints_v4/epoch_010.pt
+2026-07-12 00:11:22 [INFO] Epoch 11 | Train Loss: -10.9961
+2026-07-12 00:11:30 [INFO] Epoch 11 | Val Loss:   -9.5192
+2026-07-12 00:11:31 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-12 00:11:31 [INFO]   -> New best val loss: -9.5192
+2026-07-12 00:58:44 [INFO] Epoch 12 | Train Loss: -11.2394
+2026-07-12 00:58:53 [INFO] Epoch 12 | Val Loss:   -9.7452
+2026-07-12 00:58:53 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-12 00:58:53 [INFO]   -> New best val loss: -9.7452
+2026-07-12 01:46:07 [INFO] Epoch 13 | Train Loss: -11.4451
+2026-07-12 01:46:16 [INFO] Epoch 13 | Val Loss:   -10.3325
+2026-07-12 01:46:16 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-12 01:46:16 [INFO]   -> New best val loss: -10.3325
+2026-07-12 02:33:29 [INFO] Epoch 14 | Train Loss: -11.6349
+2026-07-12 02:33:38 [INFO] Epoch 14 | Val Loss:   -9.8956
+2026-07-12 03:20:52 [INFO] Epoch 15 | Train Loss: -11.8000
+2026-07-12 03:21:01 [INFO] Epoch 15 | Val Loss:   -10.2867
+2026-07-12 03:21:01 [INFO] Checkpoint saved → checkpoints_v4/epoch_015.pt
+2026-07-12 04:08:14 [INFO] Epoch 16 | Train Loss: -11.9593
+2026-07-12 04:08:23 [INFO] Epoch 16 | Val Loss:   -10.3547
+2026-07-12 04:08:23 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-12 04:08:23 [INFO]   -> New best val loss: -10.3547
+2026-07-12 04:55:37 [INFO] Epoch 17 | Train Loss: -12.1215
+2026-07-12 04:55:46 [INFO] Epoch 17 | Val Loss:   -10.5719
+2026-07-12 04:55:46 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-12 04:55:46 [INFO]   -> New best val loss: -10.5719
+2026-07-12 05:42:59 [INFO] Epoch 18 | Train Loss: -12.2858
+2026-07-12 05:43:08 [INFO] Epoch 18 | Val Loss:   -10.6970
+2026-07-12 05:43:08 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-12 05:43:08 [INFO]   -> New best val loss: -10.6970
+2026-07-12 06:30:22 [INFO] Epoch 19 | Train Loss: -12.4213
+2026-07-12 06:30:31 [INFO] Epoch 19 | Val Loss:   -10.8060
+2026-07-12 06:30:31 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-12 06:30:31 [INFO]   -> New best val loss: -10.8060
+2026-07-12 07:17:45 [INFO] Epoch 20 | Train Loss: -12.5674
+2026-07-12 07:17:54 [INFO] Epoch 20 | Val Loss:   -10.8859
+2026-07-12 07:17:54 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-12 07:17:54 [INFO]   -> New best val loss: -10.8859
+2026-07-12 07:17:54 [INFO] Checkpoint saved → checkpoints_v4/epoch_020.pt
+2026-07-12 08:05:08 [INFO] Epoch 21 | Train Loss: -12.7064
+2026-07-12 08:05:17 [INFO] Epoch 21 | Val Loss:   -11.0986
+2026-07-12 08:05:17 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-12 08:05:17 [INFO]   -> New best val loss: -11.0986
+2026-07-12 08:52:31 [INFO] Epoch 22 | Train Loss: -12.8211
+2026-07-12 08:52:39 [INFO] Epoch 22 | Val Loss:   -11.0808
+2026-07-12 09:39:54 [INFO] Epoch 23 | Train Loss: -12.9222
+2026-07-12 09:40:03 [INFO] Epoch 23 | Val Loss:   -10.8135
+2026-07-12 10:27:17 [INFO] Epoch 24 | Train Loss: -13.0268
+2026-07-12 10:27:26 [INFO] Epoch 24 | Val Loss:   -11.4262
+2026-07-12 10:27:26 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-12 10:27:26 [INFO]   -> New best val loss: -11.4262
+2026-07-12 11:14:40 [INFO] Epoch 25 | Train Loss: -13.1288
+2026-07-12 11:14:49 [INFO] Epoch 25 | Val Loss:   -11.3524
+2026-07-12 11:14:49 [INFO] Checkpoint saved → checkpoints_v4/epoch_025.pt
+2026-07-12 12:02:03 [INFO] Epoch 26 | Train Loss: -13.2270
+2026-07-12 12:02:12 [INFO] Epoch 26 | Val Loss:   -11.2350
+2026-07-12 12:49:26 [INFO] Epoch 27 | Train Loss: -13.3180
+2026-07-12 12:49:35 [INFO] Epoch 27 | Val Loss:   -11.1247
+2026-07-12 13:36:48 [INFO] Epoch 28 | Train Loss: -13.3832
+2026-07-12 13:36:57 [INFO] Epoch 28 | Val Loss:   -11.4116
+2026-07-12 14:24:11 [INFO] Epoch 29 | Train Loss: -13.4894
+2026-07-12 14:24:20 [INFO] Epoch 29 | Val Loss:   -11.7438
+2026-07-12 14:24:20 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-12 14:24:20 [INFO]   -> New best val loss: -11.7438
+2026-07-12 15:11:34 [INFO] Epoch 30 | Train Loss: -13.5580
+2026-07-12 15:11:43 [INFO] Epoch 30 | Val Loss:   -11.7719
+2026-07-12 15:11:43 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-12 15:11:43 [INFO]   -> New best val loss: -11.7719
+2026-07-12 15:11:43 [INFO] Checkpoint saved → checkpoints_v4/epoch_030.pt
+2026-07-12 15:58:56 [INFO] Epoch 31 | Train Loss: -13.6133
+2026-07-12 15:59:05 [INFO] Epoch 31 | Val Loss:   -11.2573
+2026-07-12 16:46:18 [INFO] Epoch 32 | Train Loss: -13.6797
+2026-07-12 16:46:27 [INFO] Epoch 32 | Val Loss:   -11.8651
+2026-07-12 16:46:27 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-12 16:46:27 [INFO]   -> New best val loss: -11.8651
+2026-07-12 17:33:41 [INFO] Epoch 33 | Train Loss: -13.7403
+2026-07-12 17:33:50 [INFO] Epoch 33 | Val Loss:   -11.7531
+2026-07-12 18:21:03 [INFO] Epoch 34 | Train Loss: -13.8216
+2026-07-12 18:21:12 [INFO] Epoch 34 | Val Loss:   -12.0546
+2026-07-12 18:21:12 [INFO] Checkpoint saved → checkpoints_v4/best.pt
+2026-07-12 18:21:12 [INFO]   -> New best val loss: -12.0546
+2026-07-12 19:08:26 [INFO] Epoch 35 | Train Loss: -13.8609
+2026-07-12 19:08:35 [INFO] Epoch 35 | Val Loss:   -11.9623
+2026-07-12 19:08:35 [INFO] Checkpoint saved → checkpoints_v4/epoch_035.pt
