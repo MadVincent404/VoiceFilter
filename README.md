@@ -80,8 +80,8 @@ pip install torch torchaudio speechbrain pesq torchmetrics jiwer soundfile tqdm 
 | PyTorch       | 2.12.0+cu126         |
 | torchaudio    | 2.12.0               |
 | CUDA          | 13.2                 |
-| GPU           | NVIDIA RTX 5090 (32 GB) |
-| Platform      | VastAI / Windows 11  |
+| GPU           | NVIDIA RTX 4090 (24 GB) |
+| Platform      | VastAI / Linux |
 
 ### Data Preparation
 
