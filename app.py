@@ -12,9 +12,9 @@ from pathlib import Path
 # Config
 GITHUB_URL   = "https://github.com/MadVincent404/VoiceFilter.git"
 RESULTS_CSV  = "results.csv"
-TRAIN_LOG    = "checkpoints_v5/logs/voicefilter.log"
-BEST_DIR     = "checkpoints_v5/best_data"
-WORST_DIR    = "checkpoints_v5/worst_data"
+TRAIN_LOG    = "miscellaneous/logs/voicefilter.log"
+BEST_DIR     = "audios/best_data"
+WORST_DIR    = "audios/worst_data"
 SR           = 16000
 
 st.set_page_config(
