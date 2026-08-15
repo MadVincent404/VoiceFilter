@@ -72,7 +72,9 @@ from model import VoiceFilter
 from config import get_config
 
 
+# ---------------------------------------------------------------------------
 # Audio helpers
+# ---------------------------------------------------------------------------
 
 def load_wav(path, target_sr=16000):
     wav, sr = sf.read(str(path))
@@ -114,7 +116,9 @@ def normalize_rms(wav, reference, eps=1e-8):
     return wav
 
 
+# ---------------------------------------------------------------------------
 # Métriques
+# ---------------------------------------------------------------------------
 
 def compute_pesq(ref_np, deg_np, sr=16000):
     if not PESQ_AVAILABLE:
@@ -172,7 +176,9 @@ def compute_wer(asr_model, wav: torch.Tensor, reference_text: str, sr=16000):
         return float("nan")
 
 
+# ---------------------------------------------------------------------------
 # D-vector
+# ---------------------------------------------------------------------------
 
 def load_dvecs(d_vec_path):
     if d_vec_path and os.path.exists(d_vec_path):
@@ -193,7 +199,9 @@ def get_d_vec_from_dict(d_vecs, speaker_id, device):
     return torch.zeros(192, device=device)
 
 
+# ---------------------------------------------------------------------------
 # Chargement des transcriptions LibriSpeech
+# ---------------------------------------------------------------------------
 
 def load_transcripts(librispeech_root):
     """Charge toutes les transcriptions .trans.txt de LibriSpeech."""
@@ -208,7 +216,9 @@ def load_transcripts(librispeech_root):
     return transcripts
 
 
+# ---------------------------------------------------------------------------
 # Sauvegarde des meilleurs/pires échantillons
+# ---------------------------------------------------------------------------
 
 def save_samples(results, output_dir, sr=16000, n=5):
     """Sauvegarde les n meilleurs et n pires selon PESQ."""
@@ -263,7 +273,8 @@ def save_samples(results, output_dir, sr=16000, n=5):
                 f.write(f"SI-SDR : {r['delta_si_sdr']:+.3f} dB\n")
                 f.write(f"SI-SNR : {r['delta_si_snr']:+.3f} dB\n")
                 f.write(f"SDR    : {r['delta_sdr']:+.3f} dB\n")
-                if not np.isnan(r.get("wer_mixed", float("nan"))):
+                wer_val = r.get("wer_mixed", "nan")
+                if wer_val != "nan" and not np.isnan(float(wer_val)):
                     f.write(f"\n--- WER ---\n")
                     f.write(f"WER mixed   : {r['wer_mixed']:.3f}\n")
                     f.write(f"WER filtered: {r['wer_filtered']:.3f}\n")
@@ -272,7 +283,9 @@ def save_samples(results, output_dir, sr=16000, n=5):
     print(f"Echantillons best/worst sauvegardes dans {output_dir}/best_data et worst_data")
 
 
+# ---------------------------------------------------------------------------
 # Evaluation principale
+# ---------------------------------------------------------------------------
 
 @torch.no_grad()
 def evaluate(args, config):
@@ -484,6 +497,215 @@ def evaluate(args, config):
 
 
 
+# ---------------------------------------------------------------------------
+# Evaluation avec bruit/musique (Phase 3)
+# ---------------------------------------------------------------------------
+
+def load_noise_files(noise_dir, music_dir):
+    noise_files, music_files = [], []
+    for d, lst in [(noise_dir, noise_files), (music_dir, music_files)]:
+        if d and Path(d).exists():
+            lst += list(Path(d).rglob("*.wav")) + list(Path(d).rglob("*.flac"))
+            print(f"[INFO] {d}: {len(lst)} fichiers")
+        elif d:
+            print(f"[WARN] Dossier non trouvé: {d}")
+    return noise_files, music_files
+
+
+@torch.no_grad()
+def evaluate_noisy(args, config):
+    """
+    Évaluation phase 3 : mélange speech + interférent + bruit/musique.
+    Crée 3 conditions :
+      - speech only  (comme evaluate normal)
+      - speech + noise
+      - speech + music
+    """
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Device: {device}")
+
+    model = VoiceFilter(config).to(device)
+    ckpt  = torch.load(args.checkpoint, map_location=device)
+    model.load_state_dict(ckpt["model"])
+    model.eval()
+    print(f"Checkpoint: {args.checkpoint}  (epoch {ckpt.get('epoch', '?')})")
+
+    stft = T.Spectrogram(
+        n_fft=config.n_fft, hop_length=config.hop_length,
+        win_length=config.win_length, power=None,
+    ).to(device)
+    istft = T.InverseSpectrogram(
+        n_fft=config.n_fft, hop_length=config.hop_length,
+        win_length=config.win_length,
+    ).to(device)
+
+    seg_len = int(config.segment_length * config.sample_rate)
+
+    # Index locuteurs
+    root = Path(args.librispeech_root)
+    speaker_files = defaultdict(list)
+    for flac in root.rglob("*.flac"):
+        try:
+            speaker_id = flac.relative_to(root).parts[0]
+        except (ValueError, IndexError):
+            speaker_id = flac.parts[-3]
+        speaker_files[speaker_id].append(flac)
+
+    speakers = sorted(speaker_files.keys())
+    print(f"Speakers: {len(speakers)}")
+
+    # Bruit et musique
+    noise_files, music_files = load_noise_files(
+        getattr(args, "noise_dir", None),
+        getattr(args, "music_dir", None),
+    )
+
+    d_vecs = load_dvecs(args.d_vec_path)
+    transcripts = load_transcripts(args.librispeech_root)
+
+    asr_model = None
+    if ASR_AVAILABLE and JIWER_AVAILABLE and args.compute_wer:
+        try:
+            asr_model = EncoderDecoderASR.from_hparams(
+                source="speechbrain/asr-crdnn-rnnlm-librispeech",
+                savedir="pretrained_models/asr-crdnn",
+                run_opts={"device": "cpu"},
+            )
+            asr_model.eval()
+        except Exception as e:
+            print(f"[WARN] ASR non charge: {e}")
+
+    random.seed(42)
+    pairs = []
+    for _ in range(args.num_pairs):
+        spk1, spk2 = random.sample(speakers, 2)
+        pairs.append((spk1,
+                      random.choice(speaker_files[spk1]),
+                      spk2,
+                      random.choice(speaker_files[spk2])))
+
+    # 3 conditions
+    conditions = {"speech_only": [], "with_noise": [], "with_music": []}
+
+    for spk1, f1, spk2, f2 in tqdm(pairs, desc="Eval noisy"):
+        target_wav = pad_or_trim(load_wav(f1, config.sample_rate), seg_len)
+        interf_wav = pad_or_trim(load_wav(f2, config.sample_rate), seg_len)
+
+        for cond in ["speech_only", "with_noise", "with_music"]:
+            mixed = mix_signals(target_wav, interf_wav, snr_db=0.0)
+
+            if cond == "with_noise" and noise_files:
+                noise = pad_or_trim(load_wav(random.choice(noise_files)), seg_len)
+                mixed = mix_signals(mixed, noise, snr_db=10.0)
+            elif cond == "with_music" and music_files:
+                music = pad_or_trim(load_wav(random.choice(music_files)), seg_len)
+                mixed = mix_signals(mixed, music, snr_db=10.0)
+            elif cond != "speech_only":
+                continue   # skip si pas de fichiers
+
+            mixed_d     = mixed.to(device)
+            mixed_spec  = stft(mixed_d)
+            mixed_mag   = mixed_spec.abs()
+            mixed_phase = mixed_spec.angle()
+            mixed_mag_in = mixed_mag.T.unsqueeze(0)
+
+            dvec = get_d_vec_from_dict(d_vecs, spk1, device).unsqueeze(0)
+            mask = model(mixed_mag_in, dvec)
+            est_mag = (mixed_mag_in * mask).squeeze(0).T
+
+            real     = est_mag * torch.cos(mixed_phase)
+            imag     = est_mag * torch.sin(mixed_phase)
+            est_spec = torch.complex(real, imag)
+            est_wav  = istft(est_spec.unsqueeze(0), length=seg_len).squeeze(0).cpu()
+            est_wav  = normalize_rms(est_wav, mixed)
+
+            e_pesq   = compute_pesq(target_wav.numpy(), est_wav.numpy())
+            e_si_sdr = compute_si_sdr(est_wav, target_wav)
+            e_si_snr = compute_si_snr(est_wav, target_wav)
+            e_sdr    = compute_sdr(est_wav, target_wav)
+
+            m_pesq   = compute_pesq(target_wav.numpy(), mixed.numpy())
+            m_si_sdr = compute_si_sdr(mixed, target_wav)
+            m_si_snr = compute_si_snr(mixed, target_wav)
+            m_sdr    = compute_sdr(mixed, target_wav)
+
+            file_id  = f1.stem
+            ref_text = transcripts.get(file_id, "")
+            wer_mix  = compute_wer(asr_model, mixed,   ref_text) if ref_text else float("nan")
+            wer_filt = compute_wer(asr_model, est_wav, ref_text) if ref_text else float("nan")
+
+            conditions[cond].append({
+                "target_speaker": spk1,
+                "target_file":    str(f1),
+                "interf_speaker": spk2,
+                "mixed_pesq":     round(m_pesq,   3),
+                "mixed_si_sdr":   round(m_si_sdr, 3),
+                "mixed_si_snr":   round(m_si_snr, 3),
+                "mixed_sdr":      round(m_sdr,    3),
+                "est_pesq":       round(e_pesq,   3),
+                "est_si_sdr":     round(e_si_sdr, 3),
+                "est_si_snr":     round(e_si_snr, 3),
+                "est_sdr":        round(e_sdr,    3),
+                "delta_pesq":     round(e_pesq   - m_pesq,   3),
+                "delta_si_sdr":   round(e_si_sdr - m_si_sdr, 3),
+                "delta_si_snr":   round(e_si_snr - m_si_snr, 3),
+                "delta_sdr":      round(e_sdr    - m_sdr,    3),
+                "wer_mixed":      round(wer_mix,  3) if not np.isnan(wer_mix)  else "nan",
+                "wer_filtered":   round(wer_filt, 3) if not np.isnan(wer_filt) else "nan",
+                "delta_wer":      round(wer_filt - wer_mix, 3) if not np.isnan(wer_mix) else "nan",
+                # Audio pour best/worst
+                "mixed_wav":      mixed,
+                "target_wav":     target_wav,
+                "interferer_wav": interf_wav,
+                "est_wav":        est_wav,
+            })
+
+    # Résumé par condition
+    os.makedirs(args.output_dir, exist_ok=True)
+    def nanmean(lst): 
+        arr = [x for x in lst if not np.isnan(float(x)) if x != "nan"]
+        return sum(arr) / len(arr) if arr else float("nan")
+
+    print("\n" + "="*75)
+    print(f"{'Condition':<15} {'Metric':<10} {'Mixed':>8} {'Filtered':>10} {'Delta':>10}")
+    print("-"*75)
+
+    all_results = []
+    for cond, rows in conditions.items():
+        if not rows:
+            continue
+        csv_keys = [k for k in rows[0] if k not in
+                    ("mixed_wav", "target_wav", "interferer_wav", "est_wav")]
+        csv_path = os.path.join(args.output_dir, f"results_{cond}.csv")
+        with open(csv_path, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=csv_keys)
+            writer.writeheader()
+            for r in rows:
+                writer.writerow({k: r[k] for k in csv_keys})
+
+        for metric in ["pesq", "si_sdr", "si_snr", "sdr"]:
+            m = nanmean([r[f"mixed_{metric}"] for r in rows])
+            e = nanmean([r[f"est_{metric}"]   for r in rows])
+            print(f"{cond:<15} {metric.upper():<10} {m:>8.3f} {e:>10.3f} {e-m:>+10.3f}")
+
+        wer_rows = [r for r in rows if r["wer_mixed"] != "nan"]
+        if wer_rows:
+            wm = nanmean([float(r["wer_mixed"])    for r in wer_rows])
+            wf = nanmean([float(r["wer_filtered"]) for r in wer_rows])
+            print(f"{cond:<15} {'WER':<10} {wm:>8.3f} {wf:>10.3f} {wf-wm:>+10.3f}")
+
+        print("-"*75)
+        all_results.extend(rows)
+
+    # Best/worst sur toutes conditions
+    save_samples(all_results, args.output_dir, sr=config.sample_rate, n=5)
+    print(f"\nCSV sauvegardes dans {args.output_dir}/")
+
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint",       required=True)
@@ -492,9 +714,16 @@ if __name__ == "__main__":
     parser.add_argument("--config",           default="config.yaml")
     parser.add_argument("--num_pairs",        type=int, default=500)
     parser.add_argument("--output_dir",       default="eval_results")
-    parser.add_argument("--compute_wer",      action="store_true",
-                        help="Activer le calcul WER (lent, necessite speechbrain ASR)")
+    parser.add_argument("--compute_wer",      action="store_true")
+    # Phase 3
+    parser.add_argument("--noisy",            action="store_true",
+                        help="Mode phase 3 : evaluer avec bruit et musique")
+    parser.add_argument("--noise_dir",        default=None)
+    parser.add_argument("--music_dir",        default=None)
     args = parser.parse_args()
 
     config = get_config(args.config)
-    evaluate(args, config)
+    if args.noisy:
+        evaluate_noisy(args, config)
+    else:
+        evaluate(args, config)

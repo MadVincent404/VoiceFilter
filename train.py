@@ -1,5 +1,5 @@
 """
-VoiceFilter Training Script - LibriSpeech multi-split
+VoiceFilter Training Script - multi-split + phase 3 noise/music augmentation
 Paper: https://arxiv.org/abs/1810.04826
 """
 
@@ -17,6 +17,31 @@ from utils import get_logger, load_checkpoint, save_checkpoint, SDRLoss
 from config import get_config
 
 
+def build_dataset(config, splits, num_mixes, snr_range, is_val=False):
+    noise_dir = None if is_val else getattr(config, "noise_dir", None)
+    music_dir = None if is_val else getattr(config, "music_dir", None)
+    return LibriSpeechVoiceFilterDataset(
+        librispeech_root = config.librispeech_root,
+        split            = splits,
+        sample_rate      = config.sample_rate,
+        segment_length   = config.segment_length,
+        n_fft            = config.n_fft,
+        hop_length       = config.hop_length,
+        win_length       = config.win_length,
+        d_vec_path       = config.d_vec_path,
+        num_mixes        = num_mixes,
+        snr_range        = snr_range,
+        noise_dir        = noise_dir,
+        music_dir        = music_dir,
+        noise_prob       = getattr(config, "noise_prob", 0.5),
+        music_prob       = getattr(config, "music_prob", 0.3),
+        noise_snr_range  = (
+            getattr(config, "noise_snr_min", 5.0),
+            getattr(config, "noise_snr_max", 20.0),
+        ),
+    )
+
+
 def train(args, config):
     logger = get_logger(config.log_dir)
     writer = SummaryWriter(config.tensorboard_dir)
@@ -24,39 +49,26 @@ def train(args, config):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logger.info(f"Using device: {device}")
 
-    # ----- Splits -----
     train_splits = getattr(config, "train_splits",
-                           ["train-clean-360", "train-clean-100"])
-    snr_range = (getattr(config, "snr_min", -3.0),
-                 getattr(config, "snr_max",  3.0))
+                           ["train-other-500", "train-clean-100"])
+    snr_range    = (getattr(config, "snr_min", -5.0),
+                    getattr(config, "snr_max",  5.0))
+
     logger.info(f"Train splits : {train_splits}")
     logger.info(f"SNR range    : {snr_range}")
+    logger.info(f"Noise dir    : {getattr(config, 'noise_dir', 'None')}")
+    logger.info(f"Music dir    : {getattr(config, 'music_dir', 'None')}")
+    logger.info(f"Noise prob   : {getattr(config, 'noise_prob', 0.5)}")
+    logger.info(f"Music prob   : {getattr(config, 'music_prob', 0.3)}")
 
-    # ----- Datasets -----
-    train_dataset = LibriSpeechVoiceFilterDataset(
-        librispeech_root=config.librispeech_root,
-        split=train_splits,
-        sample_rate=config.sample_rate,
-        segment_length=config.segment_length,
-        n_fft=config.n_fft,
-        hop_length=config.hop_length,
-        win_length=config.win_length,
-        d_vec_path=config.d_vec_path,
-        num_mixes=config.num_mixes,
-        snr_range=snr_range,
-    )
-    val_dataset = LibriSpeechVoiceFilterDataset(
-        librispeech_root=config.librispeech_root,
-        split=["dev-clean"],
-        sample_rate=config.sample_rate,
-        segment_length=config.segment_length,
-        n_fft=config.n_fft,
-        hop_length=config.hop_length,
-        win_length=config.win_length,
-        d_vec_path=config.d_vec_path,
-        num_mixes=1,
-        snr_range=(0.0, 0.0),
-    )
+    train_dataset = build_dataset(config, train_splits,
+                                  num_mixes=config.num_mixes,
+                                  snr_range=snr_range,
+                                  is_val=False)
+    val_dataset   = build_dataset(config, ["dev-clean"],
+                                  num_mixes=1,
+                                  snr_range=(0.0, 0.0),
+                                  is_val=True)
 
     logger.info(f"Train items : {len(train_dataset):,}  |  "
                 f"Speakers : {len(train_dataset.speakers)}")
@@ -82,7 +94,6 @@ def train(args, config):
         persistent_workers=config.num_workers > 0,
     )
 
-    # ----- Model -----
     model = VoiceFilter(config).to(device)
     logger.info(f"Model params: {sum(p.numel() for p in model.parameters()):,}")
 
@@ -92,7 +103,7 @@ def train(args, config):
         weight_decay=getattr(config, "weight_decay", 1e-4),
     )
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", factor=0.5, patience=4, 
+        optimizer, mode="min", factor=0.5, patience=5,
     )
     criterion = SDRLoss()
 
@@ -105,7 +116,6 @@ def train(args, config):
             args.resume, model, optimizer, logger
         )
 
-    # ----- Training loop -----
     for epoch in range(start_epoch, config.epochs):
         model.train()
         train_loss = 0.0
@@ -132,11 +142,10 @@ def train(args, config):
             if global_step % config.log_interval == 0:
                 writer.add_scalar("Loss/train_step", loss.item(), global_step)
 
-        avg_train_loss = train_loss / len(train_loader)
-        writer.add_scalar("Loss/train_epoch", avg_train_loss, epoch)
-        logger.info(f"Epoch {epoch+1} | Train Loss: {avg_train_loss:.4f}")
+        avg_train = train_loss / len(train_loader)
+        writer.add_scalar("Loss/train_epoch", avg_train, epoch)
+        logger.info(f"Epoch {epoch+1} | Train Loss: {avg_train:.4f}")
 
-        # ----- Validation -----
         val_loss = validate(model, val_loader, criterion, device)
         writer.add_scalar("Loss/val", val_loss, epoch)
         logger.info(f"Epoch {epoch+1} | Val Loss:   {val_loss:.4f}")
@@ -151,7 +160,6 @@ def train(args, config):
 
         scheduler.step(val_loss)
 
-        # Checkpoint tous les 5 epochs
         if (epoch + 1) % 5 == 0:
             save_checkpoint(
                 os.path.join(config.checkpoint_dir, f"epoch_{epoch+1:03d}.pt"),
@@ -164,7 +172,7 @@ def train(args, config):
 
 def validate(model, loader, criterion, device):
     model.eval()
-    total_loss = 0.0
+    total = 0.0
     with torch.no_grad():
         for batch in loader:
             mixed_mag  = batch["mixed_mag"].to(device)
@@ -172,8 +180,8 @@ def validate(model, loader, criterion, device):
             d_vec      = batch["d_vec"].to(device)
             mask          = model(mixed_mag, d_vec)
             estimated_mag = mixed_mag * mask
-            total_loss   += criterion(estimated_mag, target_mag).item()
-    return total_loss / len(loader)
+            total        += criterion(estimated_mag, target_mag).item()
+    return total / len(loader)
 
 
 if __name__ == "__main__":
@@ -184,7 +192,7 @@ if __name__ == "__main__":
 
     config = get_config(args.config)
     os.makedirs(config.checkpoint_dir, exist_ok=True)
-    os.makedirs(config.log_dir, exist_ok=True)
-    os.makedirs(config.tensorboard_dir, exist_ok=True)
+    os.makedirs(config.log_dir,        exist_ok=True)
+    os.makedirs(config.tensorboard_dir,exist_ok=True)
 
     train(args, config)

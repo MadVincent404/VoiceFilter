@@ -1,0 +1,49 @@
+# config_phase3.yaml — VoiceFilter Phase 3
+# Fine-tuning avec bruit ambiant + musique (MUSAN)
+# Reprend depuis le meilleur checkpoint de la phase 2
+
+# Audio
+sample_rate: 16000
+segment_length: 3.0
+n_fft: 512
+hop_length: 128
+win_length: 512
+
+# Model — identique phases 1 & 2
+d_vec_size: 192
+lstm_hidden: 400
+lstm_layers: 1
+fc_hidden: 600
+dropout: 0.0
+
+# Training
+epochs: 200
+batch_size: 48
+lr: 0.00003          # LR encore réduit pour phase 3
+grad_clip: 5.0
+num_workers: 8
+log_interval: 100
+num_mixes: 2
+snr_min: -5.0
+snr_max:  5.0
+weight_decay: 0.0001
+
+# Splits
+train_splits:
+  - train-other-500
+  - train-clean-100
+
+# Bruit et musique (MUSAN)
+noise_dir: "/workspace/data/musan/noise"
+music_dir: "/workspace/data/musan/music"
+noise_prob: 0.5      # 50% des items recevront du bruit ambiant
+music_prob: 0.3      # 30% des items recevront de la musique
+noise_snr_min: 5.0   # bruit/musique entre 5 et 20 dB sous la cible
+noise_snr_max: 20.0
+
+# Paths
+librispeech_root: "/workspace/data/LibriSpeech"
+d_vec_path: "/workspace/data/d_vectors.pt"
+checkpoint_dir: "checkpoints_v6"
+log_dir: "checkpoints_v6/logs"
+tensorboard_dir: "checkpoints_v6/runs"

@@ -7,3 +7,7 @@ cours/
 *.csv
 train.log
 voice_isolation/
+data/
+checkpoints_v5_phase2/
+checkpoints_v5_phase3/
+prepare_phase3.sh

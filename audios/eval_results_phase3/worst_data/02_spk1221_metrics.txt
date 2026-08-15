@@ -1,0 +1,22 @@
+Rank #2 (worst)
+Target speaker  : 1221
+Target file     : test\LibriSpeech\test-clean\1221\135766\1221-135766-0004.flac
+Interferer spk  : 3570
+
+--- Mélange vs Référence ---
+PESQ   : 1.060
+SI-SDR : -0.856 dB
+SI-SNR : -0.856 dB
+SDR    : -0.713 dB
+
+--- Estimé vs Référence ---
+PESQ   : 1.023
+SI-SDR : -13.752 dB
+SI-SNR : -13.753 dB
+SDR    : -12.312 dB
+
+--- Delta ---
+PESQ   : -0.038
+SI-SDR : -12.896 dB
+SI-SNR : -12.897 dB
+SDR    : -11.599 dB
