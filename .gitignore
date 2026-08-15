@@ -4,7 +4,6 @@ test/
 voice_siolation/
 pretrained_models/
 cours/
-results.csv
 train.log
 voice_isolation/
 data/
